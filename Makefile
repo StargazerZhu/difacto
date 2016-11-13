@@ -5,18 +5,25 @@ DEPS_PATH = $(shell pwd)/deps
 USE_CITY=0
 USE_LZ4=1
 NO_REVERSE_ID=0
+DMLC_CORE = dmlc-core
+ROOTDIR = $(CURDIR)
+config = make/config.mk
 
-all: build/difacto 
+all: build/difacto
+
+include $(config)
+include ps-lite/make/deps.mk
+include dmlc-core/make/dmlc.mk
 
 INCPATH = -I./src -I./include -I./dmlc-core/include -I./ps-lite/include -I./dmlc-core/src -I$(DEPS_PATH)/include
 PROTOC = ${DEPS_PATH}/bin/protoc
 CFLAGS = -std=c++11 -fopenmp -fPIC -O3 -ggdb -Wall -finline-functions $(INCPATH) -DDMLC_LOG_FATAL_THROW=0 $(ADD_CFLAGS)
 
+
 ifeq ($(NO_REVERSE_ID), 1)
 CFLAGS += -DREVERSE_FEATURE_ID=0
 endif
 
-include ps-lite/make/deps.mk
 
 ifeq ($(USE_CITY), 1)
 DEPS += ${CITYHASH}
@@ -31,6 +38,7 @@ LDFLAGS += ${DEPS_PATH}/lib/liblz4.a
 endif
 
 
+LDFLAGS += $(DMLC_LDFLAGS)
 
 # LDFLAGS += $(addprefix $(DEPS_PATH)/lib/, libprotobuf.a libzmq.a)
 
@@ -46,6 +54,7 @@ reporter/reporter.o \
 data/localizer.o reader/batch_reader.o )
 
 DMLC_DEPS = dmlc-core/libdmlc.a
+
 
 clean:
 	rm -rf build/*
@@ -68,7 +77,8 @@ build/difacto: build/main.o build/libdifacto.a $(DMLC_DEPS)
 	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 dmlc-core/libdmlc.a:
-	$(MAKE) -C dmlc-core libdmlc.a DEPS_PATH=$(DEPS_PATH) CXX=$(CXX)
+	+ cd $(DMLC_CORE); $(MAKE) libdmlc.a config=$(config); cd $(ROOTDIR)
+
 
 include tests/cpp/test.mk
 
