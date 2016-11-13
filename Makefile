@@ -77,8 +77,7 @@ build/difacto: build/main.o build/libdifacto.a $(DMLC_DEPS)
 	$(CXX) $(CFLAGS) -o $@ $^ $(LDFLAGS)
 
 dmlc-core/libdmlc.a:
-	+ cd $(DMLC_CORE); $(MAKE) libdmlc.a config=$(config); cd $(ROOTDIR)
-
+	+ cd $(DMLC_CORE); $(MAKE) libdmlc.a config=$(ROOTDIR)/$(config); cd $(ROOTDIR) 
 
 include tests/cpp/test.mk
 
